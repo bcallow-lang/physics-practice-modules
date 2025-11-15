@@ -108,17 +108,20 @@
 
     <!-- 4. JavaScript Logic -->
     <script>
-        // DOM Elements
-        const questionContainer = document.getElementById('question-container');
-        const answerInput = document.getElementById('answer-input');
-        const submitBtn = document.getElementById('submit-btn');
-        const feedbackContainer = document.getElementById('feedback-container');
-
+        // --- State and DOM Variables (Global) ---
         // State
         let currentQuestion = null;
         let guesStep = 0; // 0=none, 1=G, 2=U, 3=E, 4=S, 5=Solve
 
-        // --- Question Generation ---
+        // DOM Elements (will be assigned when DOM is loaded)
+        let questionContainer;
+        let answerInput;
+        let submitBtn;
+        let feedbackContainer;
+        let toggleBtn;
+        let equationHelp;
+
+        // --- Question Generation Functions ---
 
         // Helper: Generate a random number
         function random(min, max) {
@@ -296,22 +299,39 @@
             }
         }
 
-        // --- Event Listeners ---
-        submitBtn.addEventListener('click', checkAnswer);
+        // --- Initialization Function ---
         
-        // Allow pressing Enter to submit
-        answerInput.addEventListener('keyup', function(event) {
-            if (event.key === 'Enter') {
-                submitBtn.click();
-            }
-        });
+        function initializeModule() {
+            // 1. Assign all DOM elements
+            questionContainer = document.getElementById('question-container');
+            answerInput = document.getElementById('answer-input');
+            submitBtn = document.getElementById('submit-btn');
+            feedbackContainer = document.getElementById('feedback-container');
+            toggleBtn = document.getElementById('toggle-equation-btn');
+            equationHelp = document.getElementById('equation-help');
 
-        // Toggle Equation Help
-        const toggleBtn = document.getElementById('toggle-equation-btn');
-        const equationHelp = document.getElementById('equation-help');
-        toggleBtn.addEventListener('click', () => {
-            equationHelp.classList.toggle('hidden');
-        });
+            // 2. Attach Event Listeners
+            submitBtn.addEventListener('click', checkAnswer);
+            
+            answerInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    submitBtn.click();
+                }
+            });
 
-        // Load the first question on page load
-        window.onload = loadNewQuestion;
+            toggleBtn.addEventListener('click', () => {
+                equationHelp.classList.toggle('hidden');
+            });
+
+            // 3. Load the first question
+            loadNewQuestion();
+        }
+
+        // --- START THE APP ---
+        // Wait for the DOM to be fully loaded before trying to find elements or attach listeners.
+        // This is more robust than window.onload, especially in an iframe.
+        document.addEventListener('DOMContentLoaded', initializeModule);
+
+    </script>
+</body>
+</html>
