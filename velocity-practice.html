@@ -127,8 +127,13 @@
 
         // Problem Type 1: Solve for Velocity
         function generateVelocityProblem() {
-            const d = random(10, 500); // 10m to 500m
-            const t = random(1, 60);   // 1s to 60s
+            const d_raw = random(10, 500); // 10m to 500m
+            const t_raw = random(1, 60);   // 1s to 60s
+
+            // Round the numbers FIRST, so the calculation matches the text
+            const d = parseFloat(d_raw.toFixed(1));
+            const t = parseFloat(t_raw.toFixed(1));
+
             const answer = d / t;
             
             const text = `A car travels ${d.toFixed(1)} meters in ${t.toFixed(1)} seconds. What is its average velocity? (Round to 2 decimal places)`;
@@ -145,8 +150,13 @@
 
         // Problem Type 2: Solve for Distance
         function generateDistanceProblem() {
-            const v = random(1, 30);   // 1 m/s to 30 m/s
-            const t = random(5, 120);  // 5s to 120s
+            const v_raw = random(1, 30);   // 1 m/s to 30 m/s
+            const t_raw = random(5, 120);  // 5s to 120s
+
+            // Round the numbers FIRST, so the calculation matches the text
+            const v = parseFloat(v_raw.toFixed(1));
+            const t = parseFloat(t_raw.toFixed(1));
+
             const answer = v * t;
             
             const text = `A person runs at a constant velocity of ${v.toFixed(1)} m/s for ${t.toFixed(1)} seconds. How far did they travel? (Round to 2 decimal places)`;
@@ -163,8 +173,13 @@
 
         // Problem Type 3: Solve for Time
         function generateTimeProblem() {
-            const d = random(100, 2000); // 100m to 2000m
-            const v = random(2, 20);     // 2 m/s to 20 m/s
+            const d_raw = random(100, 2000); // 100m to 2000m
+            const v_raw = random(2, 20);     // 2 m/s to 20 m/s
+
+            // Round the numbers FIRST, so the calculation matches the text
+            const d = parseFloat(d_raw.toFixed(1));
+            const v = parseFloat(v_raw.toFixed(1));
+
             const answer = d / v;
             
             const text = `A cyclist travels ${d.toFixed(1)} meters at a constant velocity of ${v.toFixed(1)} m/s. How long did it take? (Round to 2 decimal places)`;
