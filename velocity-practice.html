@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velocity Practice</title>
+    <!-- 1. Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for the feedback */
+        #feedback-container.correct {
+            border-left: 4px solid #10B981; /* green-500 */
+            background-color: #ECFDF5; /* green-50 */
+        }
+        #feedback-container.incorrect {
+            border-left: 4px solid #EF4444; /* red-500 */
+            background-color: #FEF2F2; /* red-50 */
+        }
+        /* Style for GUES steps */
+        #gues-steps p {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container max-w-6xl mx-auto p-4 sm:p-8">
+        
+        <!-- 2. Equation and Variable Definitions -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
+                Velocity Equation Practice
+            </h1>
+            <div class="text-center mb-4">
+                <code class="text-5xl font-mono p-4">v = d / t</code>
+            </div>
+            <div class="flex flex-wrap justify-center gap-4 text-center">
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">v</strong> = velocity (units: m/s)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">d</strong> = distance (units: m)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">t</strong> = time (units: s)
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Layout: Desmos + Practice App -->
+        <div class="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+            
+            <!-- 3a. Desmos Calculator -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Desmos Calculator</h2>
+                <iframe 
+                    src="https://www.desmos.com/scientific" 
+                    class="w-full h-96 rounded-lg border border-gray-300"
+                    title="Desmos Scientific Calculator"
+                ></iframe>
+            </div>
+
+            <!-- 3b. Interactive Practice Module -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Practice Problem</h2>
+                
+                <!-- Question Display -->
+                <div id="question-container" class="text-lg text-gray-700 mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                    Loading new question...
+                </div>
+
+                <!-- Answer Input -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input 
+                        type="number" 
+                        id="answer-input" 
+                        class="flex-grow p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Enter your answer..."
+                    >
+                    <button 
+                        id="submit-btn"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition duration-200"
+                    >
+                        Submit
+                    </button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-container" class="p-4 rounded-lg hidden">
+                    <!-- Feedback will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JavaScript Logic -->
+    <script>
+        // DOM Elements
+        const questionContainer = document.getElementById('question-container');
+        const answerInput = document.getElementById('answer-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const feedbackContainer = document.getElementById('feedback-container');
+
+        // State
+        let currentQuestion = null;
+
+        // --- Question Generation ---
+
+        // Helper: Generate a random number
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Problem Type 1: Solve for Velocity
+        function generateVelocityProblem() {
+            const d = random(10, 500); // 10m to 500m
+            const t = random(1, 60);   // 1s to 60s
+            const answer = d / t;
+            
+            const text = `A car travels ${d.toFixed(1)} meters in ${t.toFixed(1)} seconds. What is its average velocity? (Round to 2 decimal places)`;
+            
+            const gues = {
+                g: `d = ${d.toFixed(1)} m, t = ${t.toFixed(1)} s`,
+                u: `v (velocity)`,
+                e: `v = d / t`,
+                s: `v = ${d.toFixed(1)} m / ${t.toFixed(1)} s`,
+                solve: `v = ${answer.toFixed(2)} m/s`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 2: Solve for Distance
+        function generateDistanceProblem() {
+            const v = random(1, 30);   // 1 m/s to 30 m/s
+            const t = random(5, 120);  // 5s to 120s
+            const answer = v * t;
+            
+            const text = `A person runs at a constant velocity of ${v.toFixed(1)} m/s for ${t.toFixed(1)} seconds. How far did they travel? (Round to 2 decimal places)`;
+            
+            const gues = {
+                g: `v = ${v.toFixed(1)} m/s, t = ${t.toFixed(1)} s`,
+                u: `d (distance)`,
+                e: `d = v * t`,
+                s: `d = ${v.toFixed(1)} m/s * ${t.toFixed(1)} s`,
+                solve: `d = ${answer.toFixed(2)} m`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 3: Solve for Time
+        function generateTimeProblem() {
+            const d = random(100, 2000); // 100m to 2000m
+            const v = random(2, 20);     // 2 m/s to 20 m/s
+            const answer = d / v;
+            
+            const text = `A cyclist travels ${d.toFixed(1)} meters at a constant velocity of ${v.toFixed(1)} m/s. How long did it take? (Round to 2 decimal places)`;
+            
+            const gues = {
+                g: `d = ${d.toFixed(1)} m, v = ${v.toFixed(1)} m/s`,
+                u: `t (time)`,
+                e: `t = d / v`,
+                s: `t = ${d.toFixed(1)} m / ${v.toFixed(1)} m/s`,
+                solve: `t = ${answer.toFixed(2)} s`
+            };
+            return { text, answer, gues };
+        }
+
+        // Bank of question types
+        const questionBank = [
+            generateVelocityProblem,
+            generateDistanceProblem,
+            generateTimeProblem
+        ];
+
+        // --- Core Functions ---
+
+        function loadNewQuestion() {
+            // Pick a random question generator
+            const generator = questionBank[Math.floor(Math.random() * questionBank.length)];
+            currentQuestion = generator();
+            
+            // Update UI
+            questionContainer.textContent = currentQuestion.text;
+            answerInput.value = '';
+            feedbackContainer.innerHTML = '';
+            feedbackContainer.className = 'p-4 rounded-lg hidden'; // Hide feedback
+            answerInput.disabled = false;
+            submitBtn.disabled = false;
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackContainer.innerHTML = `<p class="font-bold">Please enter a valid number.</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                return;
+            }
+
+            // Check with a small tolerance for rounding
+            const tolerance = 0.01;
+            const correctAnswer = currentQuestion.answer;
+
+            if (Math.abs(userAnswer - correctAnswer.toFixed(2)) <= tolerance || Math.abs(userAnswer - correctAnswer) <= tolerance) {
+                // --- CORRECT ANSWER ---
+                feedbackContainer.innerHTML = `<p class="font-bold text-lg">Correct! Great job!</p><p>Loading a new question...</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg correct';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+
+                setTimeout(loadNewQuestion, 2000); // Load next question after 2s
+            } else {
+                // --- INCORRECT ANSWER ---
+                showGUESFeedback();
+            }
+        }
+
+        function showGUESFeedback() {
+            const { g, u, e, s, solve } = currentQuestion.gues;
+            
+            feedbackContainer.innerHTML = `
+                <p class="font-bold text-lg text-red-700">Not quite. Let's review the GUES method:</p>
+                <div id="gues-steps" class="mt-4 space-y-2 text-gray-800">
+                    <p><strong>G - Given:</strong> ${g}</p>
+                    <p><strong>U - Unknown:</strong> ${u}</p>
+                    <p><strong>E - Equation:</strong> ${e}</p>
+                    <p><strong>S - Substitute:</strong> ${s}</p>
+                    <p><strong>S - Solve:</strong> ${solve}</p>
+                </div>
+                <button 
+                    id="next-q-btn" 
+                    class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
+                >
+                    Try a New Question
+                </button>
+            `;
+            feedbackContainer.className = 'p-4 rounded-lg incorrect';
+
+            // Add listener for the new "Try Again" button
+            document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+        }
+
+        // --- Event Listeners ---
+        submitBtn.addEventListener('click', checkAnswer);
+        
+        // Allow pressing Enter to submit
+        answerInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                submitBtn.click();
+            }
+        });
+
+        // Load the first question on page load
+        window.onload = loadNewQuestion;
+
+    </script>
+</body>
+</html>
