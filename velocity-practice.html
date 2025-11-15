@@ -29,8 +29,18 @@
 
     <div class="container max-w-6xl mx-auto p-4 sm:p-8">
         
+        <!-- Toggle Button -->
+        <div class="mb-4 text-right">
+            <button 
+                id="toggle-equation-btn" 
+                class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200 text-sm"
+            >
+                Toggle Equation Help
+            </button>
+        </div>
+
         <!-- 2. Equation and Variable Definitions -->
-        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <div id="equation-help" class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
                 Velocity Equation Practice
             </h1>
@@ -57,9 +67,9 @@
             <div class="bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4">Desmos Calculator</h2>
                 <iframe 
-                    src="https://www.desmos.com/scientific" 
+                    src="https://www.desmos.com/calculator" 
                     class="w-full h-96 rounded-lg border border-gray-300"
-                    title="Desmos Scientific Calculator"
+                    title="Desmos Graphing Calculator"
                 ></iframe>
             </div>
 
@@ -106,6 +116,7 @@
 
         // State
         let currentQuestion = null;
+        let guesStep = 0; // 0=none, 1=G, 2=U, 3=E, 4=S, 5=Solve
 
         // --- Question Generation ---
 
@@ -189,6 +200,7 @@
             feedbackContainer.className = 'p-4 rounded-lg hidden'; // Hide feedback
             answerInput.disabled = false;
             submitBtn.disabled = false;
+            guesStep = 0; // Reset GUES step for new question
         }
 
         function checkAnswer() {
@@ -214,6 +226,7 @@
                 setTimeout(loadNewQuestion, 2000); // Load next question after 2s
             } else {
                 // --- INCORRECT ANSWER ---
+                guesStep++; // Advance the help step
                 showGUESFeedback();
             }
         }
@@ -221,26 +234,51 @@
         function showGUESFeedback() {
             const { g, u, e, s, solve } = currentQuestion.gues;
             
-            feedbackContainer.innerHTML = `
-                <p class="font-bold text-lg text-red-700">Not quite. Let's review the GUES method:</p>
-                <div id="gues-steps" class="mt-4 space-y-2 text-gray-800">
-                    <p><strong>G - Given:</strong> ${g}</p>
-                    <p><strong>U - Unknown:</strong> ${u}</p>
-                    <p><strong>E - Equation:</strong> ${e}</p>
-                    <p><strong>S - Substitute:</strong> ${s}</p>
-                    <p><strong>S - Solve:</strong> ${solve}</p>
-                </div>
-                <button 
-                    id="next-q-btn" 
-                    class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
-                >
-                    Try a New Question
-                </button>
-            `;
-            feedbackContainer.className = 'p-4 rounded-lg incorrect';
+            let feedbackHTML = `<p class="font-bold text-lg text-red-700">Not quite. Let's review:</p>`;
+            
+            // Build the GUES steps incrementally
+            let guesStepsHTML = '<div id="gues-steps" class="mt-4 space-y-2 text-gray-800">';
+            if (guesStep >= 1) guesStepsHTML += `<p><strong>G - Given:</strong> ${g}</p>`;
+            if (guesStep >= 2) guesStepsHTML += `<p><strong>U - Unknown:</strong> ${u}</p>`;
+            if (guesStep >= 3) guesStepsHTML += `<p><strong>E - Equation:</strong> ${e}</p>`;
+            
+            // If they get it wrong after the 'E' step (guesStep is now 4), show the full solution
+            if (guesStep >= 4) {
+                guesStepsHTML += `<p><strong>S - Substitute:</strong> ${s}</p>`;
+                guesStepsHTML += `<p><strong>S - Solve:</strong> ${solve}</p>`;
+                guesStepsHTML += '</div>';
+                
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Here is the full solution. Let's try a new problem.</p>`;
+                feedbackHTML += `
+                    <button 
+                        id="next-q-btn" 
+                        class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
+                    >
+                        Try a New Question
+                    </button>
+                `;
 
-            // Add listener for the new "Try Again" button
-            document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+                // Disable input for this question
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                
+                // Add listener for the new "Try Again" button
+                document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+
+            } else {
+                // guesStep is 1, 2, or 3 - just show partial steps and let them retry
+                guesStepsHTML += '</div>';
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Review the step(s) above and try to solve it again.</p>`;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                // We don't disable the input or submit button here, allowing them to retry.
+            }
         }
 
         // --- Event Listeners ---
@@ -253,9 +291,12 @@
             }
         });
 
+        // Toggle Equation Help
+        const toggleBtn = document.getElementById('toggle-equation-btn');
+        const equationHelp = document.getElementById('equation-help');
+        toggleBtn.addEventListener('click', () => {
+            equationHelp.classList.toggle('hidden');
+        });
+
         // Load the first question on page load
         window.onload = loadNewQuestion;
-
-    </script>
-</body>
-</html>
