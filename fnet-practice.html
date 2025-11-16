@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. Change Title -->
+    <title>Unbalanced Forces Practice (F-net = ma)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for the feedback */
+        #feedback-container.correct {
+            border-left: 4px solid #10B981; /* green-500 */
+            background-color: #ECFDF5; /* green-50 */
+        }
+        #feedback-container.incorrect {
+            border-left: 4px solid #EF4444; /* red-500 */
+            background-color: #FEF2F2; /* red-50 */
+        }
+        /* Style for GUES steps */
+        #gues-steps p {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container max-w-6xl mx-auto p-4 sm:p-8">
+        
+        <!-- Toggle Button (No change needed) -->
+        <div class="mb-4 text-right">
+            <button 
+                id="toggle-equation-btn" 
+                class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200 text-sm"
+            >
+                Toggle Equation Help
+            </button>
+        </div>
+
+        <!-- 2. Equation and Variable Definitions (MODIFIED) -->
+        <div id="equation-help" class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
+                Unbalanced Forces Practice (Newton's 2nd Law)
+            </h1>
+            <div class="text-center mb-4">
+                <p class="text-lg text-gray-600 mb-2">Core Equation:</p>
+                <code class="text-5xl font-mono p-4">F<sub>net</sub> = m * a</code>
+            </div>
+            <p class="text-center text-lg text-gray-700 mb-6">
+                When forces are unbalanced (F<sub>net</sub> is not zero), an object will <strong class="text-red-600">accelerate</strong>. Net Force is the sum of all forces.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-xl mb-2">Vertical Acceleration</h3>
+                    <code class="text-2xl font-mono">F<sub>net, y</sub> = F<sub>Tension</sub> - F<sub>g</sub> = m*a</code>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-xl mb-2">Horizontal Acceleration</h3>
+                    <code class="text-2xl font-mono">F<sub>net, x</sub> = F<sub>applied</sub> - F<sub>friction</sub> = m*a</code>
+                </div>
+            </div>
+             <div class="flex flex-wrap justify-center gap-4 text-center mt-6">
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">F<sub>net</sub></strong> = Net Force (N)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">m</strong> = mass (kg)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">a</strong> = acceleration (m/s²)
+                </div>
+                 <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">F<sub>g</sub> = m * g</strong>
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">g</strong> &approx; 9.8 m/s²
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Layout: Desmos + Practice App (No change needed) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+            
+            <!-- 3a. Desmos Calculator -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Desmos Calculator</h2>
+                <iframe 
+                    src="https://www.desmos.com/calculator" 
+                    class="w-full h-96 rounded-lg border border-gray-300"
+                    title="Desmos Graphing Calculator"
+                ></iframe>
+            </div>
+
+            <!-- 3b. Interactive Practice Module (No HTML change needed) -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Practice Problem</h2>
+                
+                <!-- Question Display -->
+                <div id="question-container" class="text-lg text-gray-700 mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                    Loading new question...
+                </div>
+
+                <!-- Answer Input -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input 
+                        type="number" 
+                        id="answer-input" 
+                        class="flex-grow p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Enter your answer..."
+                    >
+                    <button 
+                        id="submit-btn"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition duration-200"
+                    >
+                        Submit
+                    </button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-container" class="p-4 rounded-lg hidden">
+                    <!-- Feedback will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JavaScript Logic (MODIFIED) -->
+    <script>
+        // --- State and DOM Variables (Global) ---
+        // State
+        let currentQuestion = null;
+        let guesStep = 0; // 0=none, 1=G, 2=U, 3=E, 4=S, 5=Solve
+
+        // DOM Elements (will be assigned when DOM is loaded)
+        let questionContainer;
+        let answerInput;
+        let submitBtn;
+        let feedbackContainer;
+        let toggleBtn;
+        let equationHelp;
+
+        // --- Question Generation Functions ---
+
+        // Helper: Generate a random number
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Problem Type 1: Solve for Acceleration (Horizontal)
+        function generateAccelerationProblem() {
+            const m_raw = random(1, 50);
+            const F_app_raw = random(50, 200);
+            // Ensure friction is less than applied force
+            const F_fric_raw = random(10, F_app_raw - 10); 
+
+            // Round the numbers FIRST
+            const m = parseFloat(m_raw.toFixed(1));
+            const F_app = parseFloat(F_app_raw.toFixed(1));
+            const F_fric = parseFloat(F_fric_raw.toFixed(1));
+            
+            const F_net = F_app - F_fric;
+            const answer = F_net / m;
+            
+            const text = `A ${m.toFixed(1)} kg box is pushed with an applied force of ${F_app.toFixed(1)} N. The force of friction opposing the motion is ${F_fric.toFixed(1)} N. What is the acceleration of the box?`;
+            
+            const gues = {
+                g: `m = ${m.toFixed(1)} kg, F<sub>applied</sub> = ${F_app.toFixed(1)} N, F<sub>friction</sub> = ${F_fric.toFixed(1)} N`,
+                u: `a (acceleration)`,
+                e: `F<sub>net</sub> = m * a  and  F<sub>net</sub> = F<sub>applied</sub> - F<sub>friction</sub>`,
+                s: `Step 1: Find F<sub>net</sub>. F<sub>net</sub> = ${F_app.toFixed(1)} N - ${F_fric.toFixed(1)} N = ${F_net.toFixed(2)} N\n
+                      Step 2: Find a. a = F<sub>net</sub> / m = ${F_net.toFixed(2)} N / ${m.toFixed(1)} kg`,
+                solve: `a = ${answer.toFixed(2)} m/s²`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 2: Solve for Missing Force (Horizontal)
+        function generateMissingForceProblem() {
+            const m_raw = random(1, 50);
+            const a_raw = random(0.5, 5);
+            const F_fric_raw = random(10, 50);
+
+            // Round the numbers FIRST
+            const m = parseFloat(m_raw.toFixed(1));
+            const a = parseFloat(a_raw.toFixed(1));
+            const F_fric = parseFloat(F_fric_raw.toFixed(1));
+
+            const F_net = m * a;
+            const answer = F_net + F_fric;
+            
+            const text = `A ${m.toFixed(1)} kg box accelerates at ${a.toFixed(1)} m/s². If the force of friction is ${F_fric.toFixed(1)} N, what was the applied force?`;
+            
+            const gues = {
+                g: `m = ${m.toFixed(1)} kg, a = ${a.toFixed(1)} m/s², F<sub>friction</sub> = ${F_fric.toFixed(1)} N`,
+                u: `F<sub>applied</sub>`,
+                e: `F<sub>net</sub> = m * a  and  F<sub>net</sub> = F<sub>applied</sub> - F<sub>friction</sub>`,
+                s: `Step 1: Find F<sub>net</sub>. F<sub>net</sub> = ${m.toFixed(1)} kg * ${a.toFixed(1)} m/s² = ${F_net.toFixed(2)} N\n
+                      Step 2: Find F<sub>applied</sub>. F<sub>applied</sub> = F<sub>net</sub> + F<sub>friction</sub> = ${F_net.toFixed(2)} N + ${F_fric.toFixed(1)} N`,
+                solve: `F<sub>applied</sub> = ${answer.toFixed(2)} N`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 3: Solve for Acceleration (Vertical)
+        function generateVerticalAccelerationProblem() {
+            const m_raw = random(10, 100); // 10 kg to 100 kg
+            const g = 9.8;
+            const F_g = m_raw * g;
+            
+            // Generate Tension that is +/- 300N from F_g, but not too close
+            let F_T_raw = F_g + random(-300, 300);
+            while (Math.abs(F_T_raw - F_g) < 20) {
+                 F_T_raw = F_g + random(-300, 300);
+            }
+
+            // Round the numbers FIRST
+            const m = parseFloat(m_raw.toFixed(1));
+            const F_T = parseFloat(F_T_raw.toFixed(1));
+            const F_g_calc = parseFloat((m * g).toFixed(2));
+
+            const F_net = F_T - F_g_calc;
+            const answer = F_net / m;
+            
+            const text = `An elevator with a mass of ${m.toFixed(1)} kg is pulled upward by a cable with a tension force of ${F_T.toFixed(1)} N. What is the acceleration of the elevator? (Use g = 9.8 m/s²)`;
+            
+            const gues = {
+                g: `m = ${m.toFixed(1)} kg, F<sub>Tension</sub> = ${F_T.toFixed(1)} N, g = 9.8 m/s²`,
+                u: `a (acceleration)`,
+                e: `F<sub>net</sub> = m * a, F<sub>net</sub> = F<sub>Tension</sub> - F<sub>g</sub>, and F<sub>g</sub> = m * g`,
+                s: `Step 1: Find F<sub>g</sub>. F<sub>g</sub> = ${m.toFixed(1)} kg * 9.8 m/s² = ${F_g_calc} N\n
+                      Step 2: Find F<sub>net</sub>. F<sub>net</sub> = ${F_T.toFixed(1)} N - ${F_g_calc} N = ${F_net.toFixed(2)} N\n
+                      Step 3: Find a. a = F<sub>net</sub> / m = ${F_net.toFixed(2)} N / ${m.toFixed(1)} kg`,
+                solve: `a = ${answer.toFixed(2)} m/s²`
+            };
+            return { text, answer, gues };
+        }
+
+        // Bank of question types (MODIFIED)
+        const questionBank = [
+            generateAccelerationProblem,
+            generateMissingForceProblem,
+            generateVerticalAccelerationProblem
+        ];
+
+        // --- Core Functions (No change needed) ---
+
+        function loadNewQuestion() {
+            // Pick a random question generator
+            const generator = questionBank[Math.floor(Math.random() * questionBank.length)];
+            currentQuestion = generator();
+            
+            // Update UI
+            questionContainer.textContent = currentQuestion.text;
+            answerInput.value = '';
+            feedbackContainer.innerHTML = '';
+            feedbackContainer.className = 'p-4 rounded-lg hidden'; // Hide feedback
+            answerInput.disabled = false;
+            submitBtn.disabled = false;
+            guesStep = 0; // Reset GUES step for new question
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackContainer.innerHTML = `<p class="font-bold">Please enter a valid number.</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                return;
+            }
+
+            // Check with a small tolerance for rounding
+            const tolerance = 0.01;
+            const correctAnswer = currentQuestion.answer;
+
+            if (Math.abs(userAnswer - correctAnswer.toFixed(2)) <= tolerance || Math.abs(userAnswer - correctAnswer) <= tolerance) {
+                // --- CORRECT ANSWER ---
+                feedbackContainer.innerHTML = `<p class="font-bold text-lg">Correct! Great job!</p><p>Loading a new question...</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg correct';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+
+                setTimeout(loadNewQuestion, 2000); // Load next question after 2s
+            } else {
+                // --- INCORRECT ANSWER ---
+                guesStep++; // Advance the help step
+                showGUESFeedback();
+            }
+        }
+
+        function showGUESFeedback() {
+            const { g, u, e, s, solve } = currentQuestion.gues;
+            
+            let feedbackHTML = `<p class="font-bold text-lg text-red-700">Not quite. Let's review:</p>`;
+            
+            // Build the GUES steps incrementally
+            // Use <pre> tag to preserve line breaks in multi-step solutions
+            let guesStepsHTML = '<div id="gues-steps" class="mt-4 space-y-2 text-gray-800">';
+            if (guesStep >= 1) guesStepsHTML += `<p><strong>G - Given:</strong> ${g}</p>`;
+            if (guesStep >= 2) guesStepsHTML += `<p><strong>U - Unknown:</strong> ${u}</p>`;
+            if (guesStep >= 3) guesStepsHTML += `<p><strong>E - Equation:</strong> ${e}</p>`;
+            
+            // If they get it wrong after the 'E' step (guesStep is now 4), show the full solution
+            if (guesStep >= 4) {
+                guesStepsHTML += `<p><strong>S - Substitute:</strong> <pre class="font-sans whitespace-pre-wrap">${s}</pre></p>`;
+                guesStepsHTML += `<p><strong>S - Solve:</strong> <pre class="font-sans whitespace-pre-wrap">${solve}</pre></p>`;
+                guesStepsHTML += '</div>';
+                
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Here is the full solution. Let's try a new problem.</p>`;
+                feedbackHTML += `
+                    <button 
+                        id="next-q-btn" 
+                        class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
+                    >
+                        Try a New Question
+                    </button>
+                `;
+
+                // Disable input for this question
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                
+                // Add listener for the new "Try Again" button
+                document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+
+            } else {
+                // guesStep is 1, 2, or 3 - just show partial steps and let them retry
+                guesStepsHTML += '</div>';
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Review the step(s) above and try to solve it again.</p>`;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                // We don't disable the input or submit button here, allowing them to retry.
+            }
+        }
+
+        // --- Initialization Function (No change needed) ---
+        
+        function initializeModule() {
+            // 1. Assign all DOM elements
+            questionContainer = document.getElementById('question-container');
+            answerInput = document.getElementById('answer-input');
+            submitBtn = document.getElementById('submit-btn');
+            feedbackContainer = document.getElementById('feedback-container');
+            toggleBtn = document.getElementById('toggle-equation-btn');
+            equationHelp = document.getElementById('equation-help');
+
+            // 2. Attach Event Listeners
+            submitBtn.addEventListener('click', checkAnswer);
+            
+            answerInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    submitBtn.click();
+                }
+            });
+
+            toggleBtn.addEventListener('click', () => {
+                equationHelp.classList.toggle('hidden');
+            });
+
+            // 3. Load the first question
+            loadNewQuestion();
+        }
+
+        // --- START THE APP (No change needed) ---
+        // Wait for the DOM to be fully loaded before trying to find elements or attach listeners.
+        document.addEventListener('DOMContentLoaded', initializeModule);
+
+    </script>
+</body>
+</html>
