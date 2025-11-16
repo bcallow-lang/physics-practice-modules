@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Velocity Practice</title>
+    <title>Average Velocity Practice</title>
     <!-- 1. Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -42,20 +42,20 @@
         <!-- 2. Equation and Variable Definitions -->
         <div id="equation-help" class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
-                Velocity Equation Practice
+                Average Velocity Practice
             </h1>
             <div class="text-center mb-4">
-                <code class="text-5xl font-mono p-4">v = d / t</code>
+                <code class="text-5xl font-mono p-4">v<sub>avg</sub> = &Delta;x / &Delta;t</code>
             </div>
             <div class="flex flex-wrap justify-center gap-4 text-center">
                 <div class="p-3 bg-gray-100 rounded-lg">
-                    <strong class="text-blue-600">v</strong> = velocity (units: m/s)
+                    <strong class="text-blue-600">v<sub>avg</sub></strong> = Average Velocity (units: m/s)
                 </div>
                 <div class="p-3 bg-gray-100 rounded-lg">
-                    <strong class="text-blue-600">d</strong> = distance (units: m)
+                    <strong class="text-blue-600">&Delta;x</strong> = Displacement (units: m)
                 </div>
                 <div class="p-3 bg-gray-100 rounded-lg">
-                    <strong class="text-blue-600">t</strong> = time (units: s)
+                    <strong class="text-blue-600">&Delta;t</strong> = Change in Time (units: s)
                 </div>
             </div>
         </div>
@@ -128,80 +128,80 @@
             return Math.random() * (max - min) + min;
         }
 
-        // Problem Type 1: Solve for Velocity
-        function generateVelocityProblem() {
-            const d_raw = random(10, 500); // 10m to 500m
-            const t_raw = random(1, 60);   // 1s to 60s
+        // Problem Type 1: Solve for Average Velocity
+        function generateAvgVelocityProblem() {
+            const dx_raw = random(10, 500); // 10m to 500m
+            const dt_raw = random(1, 60);   // 1s to 60s
 
             // Round the numbers FIRST, so the calculation matches the text
-            const d = parseFloat(d_raw.toFixed(1));
-            const t = parseFloat(t_raw.toFixed(1));
+            const dx = parseFloat(dx_raw.toFixed(1));
+            const dt = parseFloat(dt_raw.toFixed(1));
 
-            const answer = d / t;
+            const answer = dx / dt;
             
-            const text = `A car travels ${d.toFixed(1)} meters in ${t.toFixed(1)} seconds. What is its average velocity? (Round to 2 decimal places)`;
+            const text = `An object has a displacement of ${dx.toFixed(1)} meters over a time interval of ${dt.toFixed(1)} seconds. What is its average velocity? (Round to 2 decimal places)`;
             
             const gues = {
-                g: `d = ${d.toFixed(1)} m, t = ${t.toFixed(1)} s`,
-                u: `v (velocity)`,
-                e: `v = d / t`,
-                s: `v = ${d.toFixed(1)} m / ${t.toFixed(1)} s`,
-                solve: `v = ${answer.toFixed(2)} m/s`
+                g: `&Delta;x = ${dx.toFixed(1)} m, &Delta;t = ${dt.toFixed(1)} s`,
+                u: `v<sub>avg</sub> (average velocity)`,
+                e: `v<sub>avg</sub> = &Delta;x / &Delta;t`,
+                s: `v<sub>avg</sub> = ${dx.toFixed(1)} m / ${dt.toFixed(1)} s`,
+                solve: `v<sub>avg</sub> = ${answer.toFixed(2)} m/s`
             };
             return { text, answer, gues };
         }
 
-        // Problem Type 2: Solve for Distance
-        function generateDistanceProblem() {
+        // Problem Type 2: Solve for Displacement
+        function generateDisplacementProblem() {
             const v_raw = random(1, 30);   // 1 m/s to 30 m/s
-            const t_raw = random(5, 120);  // 5s to 120s
+            const dt_raw = random(5, 120);  // 5s to 120s
 
             // Round the numbers FIRST, so the calculation matches the text
             const v = parseFloat(v_raw.toFixed(1));
-            const t = parseFloat(t_raw.toFixed(1));
+            const dt = parseFloat(dt_raw.toFixed(1));
 
-            const answer = v * t;
+            const answer = v * dt;
             
-            const text = `A person runs at a constant velocity of ${v.toFixed(1)} m/s for ${t.toFixed(1)} seconds. How far did they travel? (Round to 2 decimal places)`;
+            const text = `A person runs at a constant average velocity of ${v.toFixed(1)} m/s for ${dt.toFixed(1)} seconds. What is their displacement? (Round to 2 decimal places)`;
             
             const gues = {
-                g: `v = ${v.toFixed(1)} m/s, t = ${t.toFixed(1)} s`,
-                u: `d (distance)`,
-                e: `d = v * t`,
-                s: `d = ${v.toFixed(1)} m/s * ${t.toFixed(1)} s`,
-                solve: `d = ${answer.toFixed(2)} m`
+                g: `v<sub>avg</sub> = ${v.toFixed(1)} m/s, &Delta;t = ${dt.toFixed(1)} s`,
+                u: `&Delta;x (displacement)`,
+                e: `&Delta;x = v<sub>avg</sub> * &Delta;t`,
+                s: `&Delta;x = ${v.toFixed(1)} m/s * ${dt.toFixed(1)} s`,
+                solve: `&Delta;x = ${answer.toFixed(2)} m`
             };
             return { text, answer, gues };
         }
 
         // Problem Type 3: Solve for Time
-        function generateTimeProblem() {
-            const d_raw = random(100, 2000); // 100m to 2000m
+        function generateTimeIntervalProblem() {
+            const dx_raw = random(100, 2000); // 100m to 2000m
             const v_raw = random(2, 20);     // 2 m/s to 20 m/s
 
             // Round the numbers FIRST, so the calculation matches the text
-            const d = parseFloat(d_raw.toFixed(1));
+            const dx = parseFloat(dx_raw.toFixed(1));
             const v = parseFloat(v_raw.toFixed(1));
 
-            const answer = d / v;
+            const answer = dx / v;
             
-            const text = `A cyclist travels ${d.toFixed(1)} meters at a constant velocity of ${v.toFixed(1)} m/s. How long did it take? (Round to 2 decimal places)`;
+            const text = `A cyclist travels ${dx.toFixed(1)} meters at a constant average velocity of ${v.toFixed(1)} m/s. How long did the time interval last? (Round to 2 decimal places)`;
             
             const gues = {
-                g: `d = ${d.toFixed(1)} m, v = ${v.toFixed(1)} m/s`,
-                u: `t (time)`,
-                e: `t = d / v`,
-                s: `t = ${d.toFixed(1)} m / ${v.toFixed(1)} m/s`,
-                solve: `t = ${answer.toFixed(2)} s`
+                g: `&Delta;x = ${dx.toFixed(1)} m, v<sub>avg</sub> = ${v.toFixed(1)} m/s`,
+                u: `&Delta;t (time interval)`,
+                e: `&Delta;t = &Delta;x / v<sub>avg</sub>`,
+                s: `&Delta;t = ${dx.toFixed(1)} m / ${v.toFixed(1)} m/s`,
+                solve: `&Delta;t = ${answer.toFixed(2)} s`
             };
             return { text, answer, gues };
         }
 
         // Bank of question types
         const questionBank = [
-            generateVelocityProblem,
-            generateDistanceProblem,
-            generateTimeProblem
+            generateAvgVelocityProblem,
+            generateDisplacementProblem,
+            generateTimeIntervalProblem
         ];
 
         // --- Core Functions ---
