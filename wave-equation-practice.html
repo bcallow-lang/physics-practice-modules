@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. Change Title -->
+    <title>Wave Speed Practice (v = fλ)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for the feedback */
+        #feedback-container.correct {
+            border-left: 4px solid #10B981; /* green-500 */
+            background-color: #ECFDF5; /* green-50 */
+        }
+        #feedback-container.incorrect {
+            border-left: 4px solid #EF4444; /* red-500 */
+            background-color: #FEF2F2; /* red-50 */
+        }
+        /* Style for GUES steps */
+        #gues-steps p {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container max-w-6xl mx-auto p-4 sm:p-8">
+        
+        <!-- Toggle Button -->
+        <div class="mb-4 text-right">
+            <button 
+                id="toggle-equation-btn" 
+                class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200 text-sm"
+            >
+                Toggle Equation Help
+            </button>
+        </div>
+
+        <!-- 2. Equation and Variable Definitions -->
+        <div id="equation-help" class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
+                Wave Speed Practice
+            </h1>
+            <div class="text-center mb-6">
+                <p class="text-lg text-gray-600 mb-2">Core Equation:</p>
+                <!-- Using unicode for lambda (λ) -->
+                <code class="text-5xl font-mono p-4 block overflow-x-auto">v = f * &lambda;</code>
+            </div>
+            
+             <div class="flex flex-wrap justify-center gap-4 text-center mt-6">
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">v</strong> = Wave Speed (units: m/s)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">f</strong> = Frequency (units: Hz)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">&lambda;</strong> = Wavelength (units: m)
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Layout: Desmos + Practice App -->
+        <div class="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+            
+            <!-- 3a. Desmos Calculator -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Desmos Calculator</h2>
+                <iframe 
+                    src="https://www.desmos.com/calculator" 
+                    class="w-full h-96 rounded-lg border border-gray-300"
+                    title="Desmos Graphing Calculator"
+                ></iframe>
+            </div>
+
+            <!-- 3b. Interactive Practice Module -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Practice Problem</h2>
+                
+                <!-- Question Display -->
+                <div id="question-container" class="text-lg text-gray-700 mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                    Loading new question...
+                </div>
+
+                <!-- Answer Input -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input 
+                        type="number" 
+                        id="answer-input" 
+                        class="flex-grow p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Enter your answer..."
+                    >
+                    <button 
+                        id="submit-btn"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition duration-200"
+                    >
+                        Submit
+                    </button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-container" class="p-4 rounded-lg hidden">
+                    <!-- Feedback will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JavaScript Logic -->
+    <script>
+        // --- State and DOM Variables (Global) ---
+        // State
+        let currentQuestion = null;
+        let guesStep = 0; // 0=none, 1=G, 2=U, 3=E, 4=S, 5=Solve
+
+        // DOM Elements
+        let questionContainer;
+        let answerInput;
+        let submitBtn;
+        let feedbackContainer;
+        let toggleBtn;
+        let equationHelp;
+
+        // --- Question Generation Functions ---
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Problem Type 1: Solve for Wave Speed (v)
+        function generateWaveSpeedProblem() {
+            const f_raw = random(1, 500); // 1 Hz to 500 Hz
+            const lambda_raw = random(0.1, 10); // 0.1 m to 10 m
+            
+            // Round inputs
+            const f = parseFloat(f_raw.toFixed(1));
+            const lambda = parseFloat(lambda_raw.toFixed(1));
+            
+            const answer = f * lambda;
+            
+            const text = `A sound wave has a frequency of ${f.toFixed(1)} Hz and a wavelength of ${lambda.toFixed(1)} m. What is the speed of the wave?`;
+            
+            const gues = {
+                g: `f = ${f.toFixed(1)} Hz, &lambda; = ${lambda.toFixed(1)} m`,
+                u: `v (Wave Speed)`,
+                e: `v = f * &lambda;`,
+                s: `v = ${f.toFixed(1)} Hz * ${lambda.toFixed(1)} m`,
+                solve: `v = ${answer.toFixed(2)} m/s`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 2: Solve for Frequency (f)
+        function generateFrequencyProblem() {
+            const v_raw = random(300, 400); // Speed of sound roughly
+            const lambda_raw = random(0.5, 5); 
+            
+            // Round inputs
+            const v = parseFloat(v_raw.toFixed(1));
+            const lambda = parseFloat(lambda_raw.toFixed(1));
+            
+            const answer = v / lambda;
+            
+            const text = `A wave is traveling at ${v.toFixed(1)} m/s with a wavelength of ${lambda.toFixed(1)} m. What is its frequency?`;
+            
+            const gues = {
+                g: `v = ${v.toFixed(1)} m/s, &lambda; = ${lambda.toFixed(1)} m`,
+                u: `f (Frequency)`,
+                e: `v = f * &lambda;  &rArr;  f = v / &lambda;`,
+                s: `f = ${v.toFixed(1)} m/s / ${lambda.toFixed(1)} m`,
+                solve: `f = ${answer.toFixed(2)} Hz`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 3: Solve for Wavelength (lambda)
+        function generateWavelengthProblem() {
+            const v_raw = random(10, 100); 
+            const f_raw = random(1, 50); 
+            
+            // Round inputs
+            const v = parseFloat(v_raw.toFixed(1));
+            const f = parseFloat(f_raw.toFixed(1));
+            
+            const answer = v / f;
+            
+            const text = `A wave traveling at ${v.toFixed(1)} m/s has a frequency of ${f.toFixed(1)} Hz. What is its wavelength?`;
+            
+            const gues = {
+                g: `v = ${v.toFixed(1)} m/s, f = ${f.toFixed(1)} Hz`,
+                u: `&lambda; (Wavelength)`,
+                e: `v = f * &lambda;  &rArr;  &lambda; = v / f`,
+                s: `&lambda; = ${v.toFixed(1)} m/s / ${f.toFixed(1)} Hz`,
+                solve: `&lambda; = ${answer.toFixed(2)} m`
+            };
+            return { text, answer, gues };
+        }
+
+        // Bank of question types
+        const questionBank = [
+            generateWaveSpeedProblem,
+            generateFrequencyProblem,
+            generateWavelengthProblem
+        ];
+
+        // --- Core Functions ---
+
+        function loadNewQuestion() {
+            const generator = questionBank[Math.floor(Math.random() * questionBank.length)];
+            currentQuestion = generator();
+            
+            questionContainer.textContent = currentQuestion.text;
+            answerInput.value = '';
+            feedbackContainer.innerHTML = '';
+            feedbackContainer.className = 'p-4 rounded-lg hidden';
+            answerInput.disabled = false;
+            submitBtn.disabled = false;
+            guesStep = 0;
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackContainer.innerHTML = `<p class="font-bold">Please enter a valid number.</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                return;
+            }
+
+            const tolerance = 0.05;
+            const correctAnswer = currentQuestion.answer;
+
+            if (Math.abs(userAnswer - correctAnswer) <= tolerance || Math.abs(userAnswer - correctAnswer.toFixed(2)) <= tolerance) {
+                feedbackContainer.innerHTML = `<p class="font-bold text-lg">Correct! Great job!</p><p>Loading a new question...</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg correct';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                setTimeout(loadNewQuestion, 2000);
+            } else {
+                guesStep++;
+                showGUESFeedback();
+            }
+        }
+
+        function showGUESFeedback() {
+            const { g, u, e, s, solve } = currentQuestion.gues;
+            
+            let feedbackHTML = `<p class="font-bold text-lg text-red-700">Not quite. Let's review:</p>`;
+            let guesStepsHTML = '<div id="gues-steps" class="mt-4 space-y-2 text-gray-800">';
+            
+            if (guesStep >= 1) guesStepsHTML += `<p><strong>G - Given:</strong> ${g}</p>`;
+            if (guesStep >= 2) guesStepsHTML += `<p><strong>U - Unknown:</strong> ${u}</p>`;
+            if (guesStep >= 3) guesStepsHTML += `<p><strong>E - Equation:</strong> ${e}</p>`;
+            
+            if (guesStep >= 4) {
+                guesStepsHTML += `<p><strong>S - Substitute:</strong> <pre class="font-sans whitespace-pre-wrap">${s}</pre></p>`;
+                guesStepsHTML += `<p><strong>S - Solve:</strong> <pre class="font-sans whitespace-pre-wrap">${solve}</pre></p>`;
+                guesStepsHTML += '</div>';
+                
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Here is the full solution. Let's try a new problem.</p>`;
+                feedbackHTML += `
+                    <button 
+                        id="next-q-btn" 
+                        class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
+                    >
+                        Try a New Question
+                    </button>
+                `;
+
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+
+            } else {
+                guesStepsHTML += '</div>';
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Review the step(s) above and try to solve it again.</p>`;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+            }
+        }
+
+        function initializeModule() {
+            questionContainer = document.getElementById('question-container');
+            answerInput = document.getElementById('answer-input');
+            submitBtn = document.getElementById('submit-btn');
+            feedbackContainer = document.getElementById('feedback-container');
+            toggleBtn = document.getElementById('toggle-equation-btn');
+            equationHelp = document.getElementById('equation-help');
+
+            submitBtn.addEventListener('click', checkAnswer);
+            answerInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') submitBtn.click();
+            });
+            toggleBtn.addEventListener('click', () => {
+                equationHelp.classList.toggle('hidden');
+            });
+
+            loadNewQuestion();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeModule);
+
+    </script>
+</body>
+</html>
