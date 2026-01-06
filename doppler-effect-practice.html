@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. Change Title -->
+    <title>Doppler Effect Practice</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for the feedback */
+        #feedback-container.correct {
+            border-left: 4px solid #10B981; /* green-500 */
+            background-color: #ECFDF5; /* green-50 */
+        }
+        #feedback-container.incorrect {
+            border-left: 4px solid #EF4444; /* red-500 */
+            background-color: #FEF2F2; /* red-50 */
+        }
+        /* Style for GUES steps */
+        #gues-steps p {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        .fraction {
+            display: inline-block;
+            text-align: center;
+            vertical-align: middle;
+            margin: 0 0.2rem;
+        }
+        .fraction > span {
+            display: block;
+            padding: 0.1rem;
+        }
+        .fraction span.numerator {
+            border-bottom: 2px solid black;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container max-w-6xl mx-auto p-4 sm:p-8">
+        
+        <!-- Toggle Button -->
+        <div class="mb-4 text-right">
+            <button 
+                id="toggle-equation-btn" 
+                class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200 text-sm"
+            >
+                Toggle Equation Help
+            </button>
+        </div>
+
+        <!-- 2. Equation and Variable Definitions -->
+        <div id="equation-help" class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
+                Doppler Effect Practice
+            </h1>
+            
+            <div class="text-center mb-6">
+                <p class="text-lg text-gray-600 mb-4">General Equation:</p>
+                <div class="text-4xl sm:text-5xl font-mono p-4 flex items-center justify-center">
+                    f<sub>obs</sub> = f<sub>s</sub>
+                    <div class="fraction">
+                        <span class="numerator">v &plusmn; v<sub>obs</sub></span>
+                        <span>v &mp; v<sub>s</sub></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-lg mb-6 text-center border-l-4 border-blue-500">
+                <h3 class="font-bold text-lg text-blue-800 mb-2">Sign Convention Rules:</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="font-bold">Top Signs (+ top, - bottom)</p>
+                        <p>Use when motion is <span class="text-green-600 font-bold">TOWARDS</span></p>
+                        <p class="text-sm text-gray-600">Observer towards source (+) <br> Source towards observer (-)</p>
+                    </div>
+                    <div>
+                        <p class="font-bold">Bottom Signs (- top, + bottom)</p>
+                        <p>Use when motion is <span class="text-red-600 font-bold">AWAY</span></p>
+                        <p class="text-sm text-gray-600">Observer away from source (-) <br> Source away from observer (+)</p>
+                    </div>
+                </div>
+            </div>
+            
+             <div class="flex flex-wrap justify-center gap-4 text-center">
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">f<sub>obs</sub></strong> = Observed Frequency (Hz)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">f<sub>s</sub></strong> = Source Frequency (Hz)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">v</strong> = Speed of Sound (m/s)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">v<sub>obs</sub></strong> = Observer Velocity (m/s)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">v<sub>s</sub></strong> = Source Velocity (m/s)
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Layout: Desmos + Practice App -->
+        <div class="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+            
+            <!-- 3a. Desmos Calculator -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Desmos Calculator</h2>
+                <iframe 
+                    src="https://www.desmos.com/calculator" 
+                    class="w-full h-96 rounded-lg border border-gray-300"
+                    title="Desmos Graphing Calculator"
+                ></iframe>
+            </div>
+
+            <!-- 3b. Interactive Practice Module -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Practice Problem</h2>
+                
+                <!-- Question Display -->
+                <div id="question-container" class="text-lg text-gray-700 mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                    Loading new question...
+                </div>
+
+                <!-- Answer Input -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input 
+                        type="number" 
+                        id="answer-input" 
+                        class="flex-grow p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Enter your answer..."
+                    >
+                    <button 
+                        id="submit-btn"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition duration-200"
+                    >
+                        Submit
+                    </button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-container" class="p-4 rounded-lg hidden">
+                    <!-- Feedback will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JavaScript Logic -->
+    <script>
+        // --- State and DOM Variables (Global) ---
+        // State
+        let currentQuestion = null;
+        let guesStep = 0; // 0=none, 1=G, 2=U, 3=E, 4=S, 5=Solve
+
+        // DOM Elements
+        let questionContainer;
+        let answerInput;
+        let submitBtn;
+        let feedbackContainer;
+        let toggleBtn;
+        let equationHelp;
+
+        // --- Question Generation Functions ---
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Problem Type 1: Source Moving Towards (Approaching)
+        // Denominator: v - vs
+        function generateSourceApproaching() {
+            const v = 340; // Speed of sound constant for simplicity
+            const fs_raw = random(200, 1000);
+            const vs_raw = random(10, 50); // Source speed
+            
+            const fs = parseFloat(fs_raw.toFixed(0)); // Whole number Hz usually
+            const vs = parseFloat(vs_raw.toFixed(1));
+            
+            // Formula: fobs = fs * (v / (v - vs))
+            const answer = fs * (v / (v - vs));
+            
+            const text = `A car horn emits a frequency of ${fs} Hz. The car is traveling at ${vs} m/s TOWARDS a stationary observer. If the speed of sound is ${v} m/s, what frequency is observed?`;
+            
+            const gues = {
+                g: `f<sub>s</sub> = ${fs} Hz, v = ${v} m/s, v<sub>s</sub> = ${vs} m/s, v<sub>obs</sub> = 0`,
+                u: `f<sub>obs</sub> (Observed Frequency)`,
+                e: `Source is moving TOWARDS observer -> Use Minus in denominator. <br> f<sub>obs</sub> = f<sub>s</sub> ( v / (v - v<sub>s</sub>) )`,
+                s: `f<sub>obs</sub> = ${fs} * ( ${v} / (${v} - ${vs}) ) <br> f<sub>obs</sub> = ${fs} * ( ${v} / ${(v-vs).toFixed(1)} )`,
+                solve: `f<sub>obs</sub> = ${answer.toFixed(2)} Hz`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 2: Source Moving Away (Receding)
+        // Denominator: v + vs
+        function generateSourceReceding() {
+            const v = 340;
+            const fs_raw = random(200, 1000);
+            const vs_raw = random(10, 50);
+            
+            const fs = parseFloat(fs_raw.toFixed(0));
+            const vs = parseFloat(vs_raw.toFixed(1));
+            
+            // Formula: fobs = fs * (v / (v + vs))
+            const answer = fs * (v / (v + vs));
+            
+            const text = `A train whistle blows at ${fs} Hz. The train is moving AWAY from you at ${vs} m/s. Assuming you are standing still and the speed of sound is ${v} m/s, what frequency do you hear?`;
+            
+            const gues = {
+                g: `f<sub>s</sub> = ${fs} Hz, v = ${v} m/s, v<sub>s</sub> = ${vs} m/s, v<sub>obs</sub> = 0`,
+                u: `f<sub>obs</sub> (Observed Frequency)`,
+                e: `Source is moving AWAY -> Use Plus in denominator. <br> f<sub>obs</sub> = f<sub>s</sub> ( v / (v + v<sub>s</sub>) )`,
+                s: `f<sub>obs</sub> = ${fs} * ( ${v} / (${v} + ${vs}) ) <br> f<sub>obs</sub> = ${fs} * ( ${v} / ${(v+vs).toFixed(1)} )`,
+                solve: `f<sub>obs</sub> = ${answer.toFixed(2)} Hz`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 3: Observer Moving Towards
+        // Numerator: v + vobs
+        function generateObsApproaching() {
+            const v = 340;
+            const fs_raw = random(200, 1000);
+            const vobs_raw = random(5, 30);
+            
+            const fs = parseFloat(fs_raw.toFixed(0));
+            const vobs = parseFloat(vobs_raw.toFixed(1));
+            
+            // Formula: fobs = fs * ((v + vobs) / v)
+            const answer = fs * ((v + vobs) / v);
+            
+            const text = `A stationary siren emits a sound at ${fs} Hz. You are running TOWARDS the siren at ${vobs} m/s. The speed of sound is ${v} m/s. What frequency do you observe?`;
+            
+            const gues = {
+                g: `f<sub>s</sub> = ${fs} Hz, v = ${v} m/s, v<sub>obs</sub> = ${vobs} m/s, v<sub>s</sub> = 0`,
+                u: `f<sub>obs</sub> (Observed Frequency)`,
+                e: `Observer moving TOWARDS source -> Use Plus in numerator. <br> f<sub>obs</sub> = f<sub>s</sub> ( (v + v<sub>obs</sub>) / v )`,
+                s: `f<sub>obs</sub> = ${fs} * ( (${v} + ${vobs}) / ${v} ) <br> f<sub>obs</sub> = ${fs} * ( ${(v+vobs).toFixed(1)} / ${v} )`,
+                solve: `f<sub>obs</sub> = ${answer.toFixed(2)} Hz`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 4: Observer Moving Away
+        // Numerator: v - vobs
+        function generateObsReceding() {
+            const v = 340;
+            const fs_raw = random(200, 1000);
+            const vobs_raw = random(5, 30);
+            
+            const fs = parseFloat(fs_raw.toFixed(0));
+            const vobs = parseFloat(vobs_raw.toFixed(1));
+            
+            // Formula: fobs = fs * ((v - vobs) / v)
+            const answer = fs * ((v - vobs) / v);
+            
+            const text = `A factory whistle sounds at ${fs} Hz. You are driving AWAY from the factory at ${vobs} m/s. If the speed of sound is ${v} m/s, what frequency do you hear?`;
+            
+            const gues = {
+                g: `f<sub>s</sub> = ${fs} Hz, v = ${v} m/s, v<sub>obs</sub> = ${vobs} m/s, v<sub>s</sub> = 0`,
+                u: `f<sub>obs</sub> (Observed Frequency)`,
+                e: `Observer moving AWAY -> Use Minus in numerator. <br> f<sub>obs</sub> = f<sub>s</sub> ( (v - v<sub>obs</sub>) / v )`,
+                s: `f<sub>obs</sub> = ${fs} * ( (${v} - ${vobs}) / ${v} ) <br> f<sub>obs</sub> = ${fs} * ( ${(v-vobs).toFixed(1)} / ${v} )`,
+                solve: `f<sub>obs</sub> = ${answer.toFixed(2)} Hz`
+            };
+            return { text, answer, gues };
+        }
+
+        // Bank of question types
+        const questionBank = [
+            generateSourceApproaching,
+            generateSourceReceding,
+            generateObsApproaching,
+            generateObsReceding
+        ];
+
+        // --- Core Functions ---
+
+        function loadNewQuestion() {
+            const generator = questionBank[Math.floor(Math.random() * questionBank.length)];
+            currentQuestion = generator();
+            
+            questionContainer.textContent = currentQuestion.text;
+            answerInput.value = '';
+            feedbackContainer.innerHTML = '';
+            feedbackContainer.className = 'p-4 rounded-lg hidden';
+            answerInput.disabled = false;
+            submitBtn.disabled = false;
+            guesStep = 0;
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackContainer.innerHTML = `<p class="font-bold">Please enter a valid number.</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                return;
+            }
+
+            const tolerance = 0.5; // Slightly larger tolerance for Hz
+            const correctAnswer = currentQuestion.answer;
+
+            if (Math.abs(userAnswer - correctAnswer) <= tolerance || Math.abs(userAnswer - correctAnswer.toFixed(2)) <= tolerance) {
+                feedbackContainer.innerHTML = `<p class="font-bold text-lg">Correct! Great job!</p><p>Loading a new question...</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg correct';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                setTimeout(loadNewQuestion, 2000);
+            } else {
+                guesStep++;
+                showGUESFeedback();
+            }
+        }
+
+        function showGUESFeedback() {
+            const { g, u, e, s, solve } = currentQuestion.gues;
+            
+            let feedbackHTML = `<p class="font-bold text-lg text-red-700">Not quite. Let's review:</p>`;
+            let guesStepsHTML = '<div id="gues-steps" class="mt-4 space-y-2 text-gray-800">';
+            
+            if (guesStep >= 1) guesStepsHTML += `<p><strong>G - Given:</strong> ${g}</p>`;
+            if (guesStep >= 2) guesStepsHTML += `<p><strong>U - Unknown:</strong> ${u}</p>`;
+            if (guesStep >= 3) guesStepsHTML += `<p><strong>E - Equation:</strong> ${e}</p>`;
+            
+            if (guesStep >= 4) {
+                guesStepsHTML += `<p><strong>S - Substitute:</strong> <pre class="font-sans whitespace-pre-wrap">${s}</pre></p>`;
+                guesStepsHTML += `<p><strong>S - Solve:</strong> <pre class="font-sans whitespace-pre-wrap">${solve}</pre></p>`;
+                guesStepsHTML += '</div>';
+                
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Here is the full solution. Let's try a new problem.</p>`;
+                feedbackHTML += `
+                    <button 
+                        id="next-q-btn" 
+                        class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
+                    >
+                        Try a New Question
+                    </button>
+                `;
+
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+
+            } else {
+                guesStepsHTML += '</div>';
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Review the step(s) above and try to solve it again.</p>`;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+            }
+        }
+
+        function initializeModule() {
+            questionContainer = document.getElementById('question-container');
+            answerInput = document.getElementById('answer-input');
+            submitBtn = document.getElementById('submit-btn');
+            feedbackContainer = document.getElementById('feedback-container');
+            toggleBtn = document.getElementById('toggle-equation-btn');
+            equationHelp = document.getElementById('equation-help');
+
+            submitBtn.addEventListener('click', checkAnswer);
+            answerInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') submitBtn.click();
+            });
+            toggleBtn.addEventListener('click', () => {
+                equationHelp.classList.toggle('hidden');
+            });
+
+            loadNewQuestion();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeModule);
+
+    </script>
+</body>
+</html>
