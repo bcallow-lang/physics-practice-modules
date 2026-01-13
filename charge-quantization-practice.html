@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. Change Title -->
+    <title>Charge Quantization Practice (q = ne)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for the feedback */
+        #feedback-container.correct {
+            border-left: 4px solid #10B981; /* green-500 */
+            background-color: #ECFDF5; /* green-50 */
+        }
+        #feedback-container.incorrect {
+            border-left: 4px solid #EF4444; /* red-500 */
+            background-color: #FEF2F2; /* red-50 */
+        }
+        /* Style for GUES steps */
+        #gues-steps p {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container max-w-6xl mx-auto p-4 sm:p-8">
+        
+        <!-- Toggle Button -->
+        <div class="mb-4 text-right">
+            <button 
+                id="toggle-equation-btn" 
+                class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200 text-sm"
+            >
+                Toggle Equation Help
+            </button>
+        </div>
+
+        <!-- 2. Equation and Variable Definitions -->
+        <div id="equation-help" class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
+                Charge Quantization Practice
+            </h1>
+            <div class="text-center mb-6">
+                <p class="text-lg text-gray-600 mb-2">Core Equation:</p>
+                <code class="text-5xl font-mono p-4 block overflow-x-auto">q = n * e</code>
+            </div>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mb-6 text-center border-l-4 border-blue-500">
+                <p class="font-bold text-blue-800">Scientific Notation Tip:</p>
+                <p class="text-gray-700">
+                    To type <strong>1.6 &times; 10<sup>-19</sup></strong>, you can type <code>1.6e-19</code> into the answer box.
+                </p>
+            </div>
+
+             <div class="flex flex-wrap justify-center gap-4 text-center">
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">q</strong> = Net Charge (Coulombs, C)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">n</strong> = Number of elementary charges (integer)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">e</strong> = Elementary Charge constant
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">e</strong> &approx; 1.60 &times; 10<sup>-19</sup> C
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Layout: Desmos + Practice App -->
+        <div class="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+            
+            <!-- 3a. Desmos Calculator -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Desmos Calculator</h2>
+                <iframe 
+                    src="https://www.desmos.com/scientific" 
+                    class="w-full h-96 rounded-lg border border-gray-300"
+                    title="Desmos Scientific Calculator"
+                ></iframe>
+            </div>
+
+            <!-- 3b. Interactive Practice Module -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Practice Problem</h2>
+                
+                <!-- Question Display -->
+                <div id="question-container" class="text-lg text-gray-700 mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                    Loading new question...
+                </div>
+
+                <!-- Answer Input -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input 
+                        type="text" 
+                        id="answer-input" 
+                        class="flex-grow p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="e.g. 3.2e-19"
+                    >
+                    <button 
+                        id="submit-btn"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition duration-200"
+                    >
+                        Submit
+                    </button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-container" class="p-4 rounded-lg hidden">
+                    <!-- Feedback will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JavaScript Logic -->
+    <script>
+        // --- State and DOM Variables (Global) ---
+        // State
+        let currentQuestion = null;
+        let guesStep = 0; // 0=none, 1=G, 2=U, 3=E, 4=S, 5=Solve
+        const ELEMENTARY_CHARGE = 1.6e-19;
+
+        // DOM Elements
+        let questionContainer;
+        let answerInput;
+        let submitBtn;
+        let feedbackContainer;
+        let toggleBtn;
+        let equationHelp;
+
+        // --- Helper Functions ---
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // Helper to display scientific notation nicely in HTML
+        function toSciHTML(num) {
+            if (num === 0) return "0";
+            let str = num.toExponential(2); // "1.60e-19"
+            let parts = str.split('e');
+            return `${parts[0]} &times; 10<sup>${parts[1]}</sup>`;
+        }
+
+        // --- Question Generation Functions ---
+
+        // Problem Type 1: Solve for Charge (q)
+        function generateChargeProblem() {
+            // Generate a random number of electrons (between 10^10 and 10^15)
+            // Or smaller numbers for simpler practice, let's do somewhat realistic static charge numbers
+            // Let's do small integers * 10^something to make the math clean
+            
+            const base = randomInt(1, 9);
+            const power = randomInt(10, 15);
+            const n = base * Math.pow(10, power);
+            
+            const answer = n * ELEMENTARY_CHARGE;
+            
+            // Format n for display
+            const n_display = toSciHTML(n);
+
+            const text = `An object possesses an excess of ${n_display} electrons. What is the net charge on the object? (Use e = 1.60e-19 C)`;
+            
+            const gues = {
+                g: `n = ${n_display}, e = 1.60 &times; 10<sup>-19</sup> C`,
+                u: `q (Net Charge)`,
+                e: `q = n * e`,
+                s: `q = (${n_display}) * (1.60 &times; 10<sup>-19</sup> C)`,
+                solve: `q = ${toSciHTML(answer)} C`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 2: Solve for Number of Particles (n)
+        function generateNumberProblem() {
+            // We must start with n to ensure it's an integer, then calculate q
+            const base = randomInt(1, 50); 
+            // Let's create a q roughly around 10^-18 to 10^-15 C
+            // n will be between 1 and 10000 roughly
+            const n = randomInt(10, 5000); 
+            
+            const q = n * ELEMENTARY_CHARGE;
+            const answer = n;
+            
+            const q_display = toSciHTML(q);
+            
+            const text = `An object has a net charge of ${q_display} C. How many excess elementary charges does this correspond to? (Use e = 1.60e-19 C)`;
+            
+            const gues = {
+                g: `q = ${q_display} C, e = 1.60 &times; 10<sup>-19</sup> C`,
+                u: `n (Number of charges)`,
+                e: `q = n * e  &rArr;  n = q / e`,
+                s: `n = (${q_display} C) / (1.60 &times; 10<sup>-19</sup> C)`,
+                solve: `n = ${answer} (electrons/protons)`
+            };
+            return { text, answer, gues };
+        }
+
+        // Bank of question types
+        const questionBank = [
+            generateChargeProblem,
+            generateNumberProblem
+        ];
+
+        // --- Core Functions ---
+
+        function loadNewQuestion() {
+            const generator = questionBank[Math.floor(Math.random() * questionBank.length)];
+            currentQuestion = generator();
+            
+            // Use innerHTML because we are injecting <sup> tags
+            questionContainer.innerHTML = currentQuestion.text;
+            answerInput.value = '';
+            feedbackContainer.innerHTML = '';
+            feedbackContainer.className = 'p-4 rounded-lg hidden';
+            answerInput.disabled = false;
+            submitBtn.disabled = false;
+            guesStep = 0;
+        }
+
+        function checkAnswer() {
+            // Use parseFloat to handle scientific notation inputs like "3.2e-19"
+            const userAnswer = parseFloat(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackContainer.innerHTML = `<p class="font-bold">Please enter a valid number (e.g. 3.2e-19).</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                return;
+            }
+
+            // Calculate percentage difference for tolerance because numbers are very small
+            const correctAnswer = currentQuestion.answer;
+            const percentDiff = Math.abs((userAnswer - correctAnswer) / correctAnswer);
+            
+            // Allow 5% error margin or slight absolute difference
+            // Absolute tolerance is tricky with scientific notation, percentage is safer
+            const isCorrect = percentDiff < 0.05;
+
+            if (isCorrect) {
+                feedbackContainer.innerHTML = `<p class="font-bold text-lg">Correct! Great job!</p><p>Loading a new question...</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg correct';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                setTimeout(loadNewQuestion, 2000);
+            } else {
+                guesStep++;
+                showGUESFeedback();
+            }
+        }
+
+        function showGUESFeedback() {
+            const { g, u, e, s, solve } = currentQuestion.gues;
+            
+            let feedbackHTML = `<p class="font-bold text-lg text-red-700">Not quite. Let's review:</p>`;
+            let guesStepsHTML = '<div id="gues-steps" class="mt-4 space-y-2 text-gray-800">';
+            
+            if (guesStep >= 1) guesStepsHTML += `<p><strong>G - Given:</strong> ${g}</p>`;
+            if (guesStep >= 2) guesStepsHTML += `<p><strong>U - Unknown:</strong> ${u}</p>`;
+            if (guesStep >= 3) guesStepsHTML += `<p><strong>E - Equation:</strong> ${e}</p>`;
+            
+            if (guesStep >= 4) {
+                guesStepsHTML += `<p><strong>S - Substitute:</strong> <span class="font-mono bg-white px-1 rounded">${s}</span></p>`;
+                guesStepsHTML += `<p><strong>S - Solve:</strong> <span class="font-mono bg-white px-1 rounded">${solve}</span></p>`;
+                guesStepsHTML += '</div>';
+                
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Here is the full solution. Let's try a new problem.</p>`;
+                feedbackHTML += `
+                    <button 
+                        id="next-q-btn" 
+                        class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
+                    >
+                        Try a New Question
+                    </button>
+                `;
+
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+
+            } else {
+                guesStepsHTML += '</div>';
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Review the step(s) above and try to solve it again.</p>`;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+            }
+        }
+
+        function initializeModule() {
+            questionContainer = document.getElementById('question-container');
+            answerInput = document.getElementById('answer-input');
+            submitBtn = document.getElementById('submit-btn');
+            feedbackContainer = document.getElementById('feedback-container');
+            toggleBtn = document.getElementById('toggle-equation-btn');
+            equationHelp = document.getElementById('equation-help');
+
+            submitBtn.addEventListener('click', checkAnswer);
+            answerInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') submitBtn.click();
+            });
+            toggleBtn.addEventListener('click', () => {
+                equationHelp.classList.toggle('hidden');
+            });
+
+            loadNewQuestion();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeModule);
+
+    </script>
+</body>
+</html>
