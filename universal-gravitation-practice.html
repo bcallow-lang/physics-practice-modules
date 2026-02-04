@@ -192,11 +192,11 @@
             const m1_exp = Math.floor(random(5, 25)); // 10^5 to 10^25 kg
             const m2_exp = Math.floor(random(5, 25));
             
-            const m1 = random(1, 9) * Math.pow(10, m1_exp);
-            const m2 = random(1, 9) * Math.pow(10, m2_exp);
+            const m1 = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, m1_exp);
+            const m2 = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, m2_exp);
             
             const r_exp = Math.floor(random(2, 10)); // 100m to 10^10 m
-            const r = random(1, 9) * Math.pow(10, r_exp);
+            const r = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, r_exp);
             
             // Fg = G * m1 * m2 / r^2
             const numerator = G_CONSTANT * m1 * m2;
@@ -225,13 +225,13 @@
         function generateMassProblem() {
             // Need to generate valid numbers first
             const m2_exp = Math.floor(random(20, 25)); // Planet sized
-            const m2 = random(1, 9) * Math.pow(10, m2_exp);
+            const m2 = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, m2_exp);
             
             const r_exp = Math.floor(random(5, 8)); // Orbit sized
-            const r = random(1, 9) * Math.pow(10, r_exp);
+            const r = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, r_exp);
             
             // Assume a force, or calculate based on a hidden m1
-            const m1_hidden = random(100, 5000); // Satellite sized
+            const m1_hidden = parseFloat(random(100, 5000).toFixed(1)); // Satellite sized
             const Fg = (G_CONSTANT * m1_hidden * m2) / (r * r);
             
             const answer = m1_hidden;
@@ -258,11 +258,11 @@
         function generateDistanceProblem() {
             const m1_exp = Math.floor(random(5, 10));
             const m2_exp = Math.floor(random(5, 10));
-            const m1 = random(1, 9) * Math.pow(10, m1_exp);
-            const m2 = random(1, 9) * Math.pow(10, m2_exp);
+            const m1 = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, m1_exp);
+            const m2 = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, m2_exp);
             
             // Define a hidden r
-            const r_hidden = random(100, 10000);
+            const r_hidden = parseFloat(random(100, 10000).toFixed(1));
             const Fg = (G_CONSTANT * m1 * m2) / (r_hidden * r_hidden);
             
             const answer = r_hidden;
