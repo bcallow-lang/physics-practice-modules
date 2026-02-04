@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. Change Title -->
+    <title>Gravitational Field Strength Practice</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for the feedback */
+        #feedback-container.correct {
+            border-left: 4px solid #10B981; /* green-500 */
+            background-color: #ECFDF5; /* green-50 */
+        }
+        #feedback-container.incorrect {
+            border-left: 4px solid #EF4444; /* red-500 */
+            background-color: #FEF2F2; /* red-50 */
+        }
+        /* Style for GUES steps */
+        #gues-steps p {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        /* Fraction styling for the equation */
+        .fraction {
+            display: inline-block;
+            text-align: center;
+            vertical-align: middle;
+            margin: 0 0.2rem;
+        }
+        .fraction > span {
+            display: block;
+            padding: 0.1rem;
+        }
+        .fraction span.numerator {
+            border-bottom: 2px solid black;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container max-w-6xl mx-auto p-4 sm:p-8">
+        
+        <!-- Toggle Button -->
+        <div class="mb-4 text-right">
+            <button 
+                id="toggle-equation-btn" 
+                class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200 text-sm"
+            >
+                Toggle Equation Help
+            </button>
+        </div>
+
+        <!-- 2. Equation and Variable Definitions -->
+        <div id="equation-help" class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
+                Gravitational Field Strength
+            </h1>
+            <div class="text-center mb-6">
+                <p class="text-lg text-gray-600 mb-2">Core Equation:</p>
+                <div class="text-4xl sm:text-5xl font-mono p-4 flex items-center justify-center overflow-x-auto">
+                    g = G
+                    <div class="fraction">
+                        <span class="numerator">m</span>
+                        <span>r²</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mb-6 text-center border-l-4 border-blue-500">
+                <p class="font-bold text-blue-800">Scientific Notation Tip:</p>
+                <p class="text-gray-700">
+                    To type <strong>6.67 &times; 10<sup>-11</sup></strong>, you can type <code>6.67e-11</code> into the answer box.
+                </p>
+            </div>
+
+             <div class="flex flex-wrap justify-center gap-4 text-center">
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">g</strong> = Gravitational Field Strength (N/kg or m/s²)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">G</strong> = Gravitational Constant (&approx; 6.67 &times; 10<sup>-11</sup>)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">m</strong> = Mass of source object (kg)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">r</strong> = Distance from center (m)
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Layout: Desmos + Practice App -->
+        <div class="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+            
+            <!-- 3a. Desmos Calculator -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Desmos Calculator</h2>
+                <iframe 
+                    src="https://www.desmos.com/calculator" 
+                    class="w-full h-96 rounded-lg border border-gray-300"
+                    title="Desmos Graphing Calculator"
+                ></iframe>
+            </div>
+
+            <!-- 3b. Interactive Practice Module -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Practice Problem</h2>
+                
+                <!-- Mode Selection -->
+                <div class="flex justify-center gap-2 mb-6 bg-gray-100 p-2 rounded-lg">
+                    <button id="mode-basic" class="flex-1 py-2 px-4 rounded-md font-bold transition-colors duration-200 bg-blue-600 text-white shadow">
+                        Basic Mode (Find g)
+                    </button>
+                    <button id="mode-challenge" class="flex-1 py-2 px-4 rounded-md font-bold transition-colors duration-200 bg-gray-300 text-gray-700 hover:bg-gray-400">
+                        Challenge Mode (Find m or r)
+                    </button>
+                </div>
+
+                <!-- Question Display -->
+                <div id="question-container" class="text-lg text-gray-700 mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                    Loading new question...
+                </div>
+
+                <!-- Answer Input -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input 
+                        type="text" 
+                        id="answer-input" 
+                        class="flex-grow p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="e.g. 9.8"
+                    >
+                    <button 
+                        id="submit-btn"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition duration-200"
+                    >
+                        Submit
+                    </button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-container" class="p-4 rounded-lg hidden">
+                    <!-- Feedback will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JavaScript Logic -->
+    <script>
+        // --- State and DOM Variables (Global) ---
+        let currentQuestion = null;
+        let guesStep = 0;
+        let currentMode = 'basic'; // 'basic' or 'challenge'
+        const G_CONSTANT = 6.67e-11;
+
+        // DOM Elements
+        let questionContainer;
+        let answerInput;
+        let submitBtn;
+        let feedbackContainer;
+        let toggleBtn;
+        let equationHelp;
+        let modeBasicBtn;
+        let modeChallengeBtn;
+
+        // --- Helper Functions ---
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+        
+        // Helper to display scientific notation nicely in HTML
+        function toSciHTML(num) {
+            if (num === 0) return "0";
+            if (Math.abs(num) >= 0.01 && Math.abs(num) <= 10000) return num.toString(); 
+            
+            let str = num.toExponential(2); 
+            let parts = str.split('e');
+            let exponent = parts[1].replace('+', '');
+            return `${parts[0]} &times; 10<sup>${exponent}</sup>`;
+        }
+
+        // --- Question Generation Functions ---
+
+        // Basic Mode: Solve for Field Strength (g)
+        function generateGravityFieldProblem() {
+            // Generate planet/star mass (10^20 to 10^30 kg)
+            const m_exp = Math.floor(random(20, 30)); 
+            const m = random(1, 9) * Math.pow(10, m_exp);
+            
+            // Generate radius/distance (10^5 to 10^9 m)
+            const r_exp = Math.floor(random(5, 9)); 
+            const r = random(1, 9) * Math.pow(10, r_exp);
+            
+            // g = G * m / r^2
+            const numerator = G_CONSTANT * m;
+            const r_squared = r * r;
+            const answer = numerator / r_squared;
+            
+            const m_disp = toSciHTML(m);
+            const r_disp = toSciHTML(r);
+            
+            const text = `Calculate the gravitational field strength at a distance of ${r_disp} m from the center of a planet with a mass of ${m_disp} kg. (Use G = 6.67e-11)`;
+            
+            const gues = {
+                g: `m = ${m_disp} kg, r = ${r_disp} m, G = 6.67e-11`,
+                u: `g (Gravitational Field)`,
+                e: `g = G * m / r²`,
+                s: `Numerator: (6.67e-11) * (${m_disp}) = ${toSciHTML(numerator)} <br>
+                    Denominator: (${r_disp})² = ${toSciHTML(r_squared)} <br>
+                    g = ${toSciHTML(numerator)} / ${toSciHTML(r_squared)}`,
+                solve: `g = ${toSciHTML(answer)} m/s²`
+            };
+            return { text, answer, gues };
+        }
+
+        // Challenge Mode: Solve for Mass (m)
+        function generateMassProblem() {
+            // Generate reasonable values for r and g first
+            const r_exp = Math.floor(random(6, 8)); // Planet radius scale
+            const r = random(1, 9) * Math.pow(10, r_exp);
+            
+            // Typical g values (0.1 to 30 m/s^2)
+            const g_val = random(1, 25);
+            
+            // m = g * r^2 / G
+            const answer = (g_val * r * r) / G_CONSTANT;
+            
+            const r_disp = toSciHTML(r);
+            const g_disp = g_val.toFixed(2);
+            
+            const text = `The gravitational field strength is ${g_disp} m/s² at a distance of ${r_disp} m from the center of a mysterious planet. What is the mass of the planet?`;
+            
+            const gues = {
+                g: `g = ${g_disp} m/s², r = ${r_disp} m, G = 6.67e-11`,
+                u: `m (Mass of planet)`,
+                e: `g = G * m / r²  &rArr;  m = (g * r²) / G`,
+                s: `Numerator: ${g_disp} * (${r_disp})² <br>
+                    Denominator: 6.67e-11 <br>
+                    m = ( ${g_disp} * ${toSciHTML(r*r)} ) / 6.67e-11`,
+                solve: `m = ${toSciHTML(answer)} kg`
+            };
+            return { text, answer, gues };
+        }
+
+        // Challenge Mode: Solve for Radius (r)
+        function generateRadiusProblem() {
+            // Generate Mass
+            const m_exp = Math.floor(random(22, 26)); 
+            const m = random(1, 9) * Math.pow(10, m_exp);
+            
+            // Generate g
+            const g_val = random(2, 20);
+            
+            // r = sqrt( G * m / g )
+            const answer = Math.sqrt( (G_CONSTANT * m) / g_val );
+            
+            const m_disp = toSciHTML(m);
+            const g_disp = g_val.toFixed(2);
+            
+            const text = `At what distance from the center of a planet with mass ${m_disp} kg is the gravitational field strength equal to ${g_disp} m/s²?`;
+            
+            const gues = {
+                g: `m = ${m_disp} kg, g = ${g_disp} m/s², G = 6.67e-11`,
+                u: `r (Distance)`,
+                e: `g = G * m / r²  &rArr;  r = sqrt( (G * m) / g )`,
+                s: `Inside Sqrt: ( (6.67e-11) * ${m_disp} ) / ${g_disp}`,
+                solve: `r = ${toSciHTML(answer)} m`
+            };
+            return { text, answer, gues };
+        }
+
+        // --- Core Functions ---
+
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Update UI styles
+            if (mode === 'basic') {
+                modeBasicBtn.classList.remove('bg-gray-300', 'text-gray-700', 'hover:bg-gray-400');
+                modeBasicBtn.classList.add('bg-blue-600', 'text-white', 'shadow');
+                
+                modeChallengeBtn.classList.remove('bg-blue-600', 'text-white', 'shadow');
+                modeChallengeBtn.classList.add('bg-gray-300', 'text-gray-700', 'hover:bg-gray-400');
+            } else {
+                modeChallengeBtn.classList.remove('bg-gray-300', 'text-gray-700', 'hover:bg-gray-400');
+                modeChallengeBtn.classList.add('bg-blue-600', 'text-white', 'shadow');
+                
+                modeBasicBtn.classList.remove('bg-blue-600', 'text-white', 'shadow');
+                modeBasicBtn.classList.add('bg-gray-300', 'text-gray-700', 'hover:bg-gray-400');
+            }
+            
+            loadNewQuestion();
+        }
+
+        function loadNewQuestion() {
+            let generator;
+            
+            if (currentMode === 'basic') {
+                generator = generateGravityFieldProblem;
+            } else {
+                // Randomly choose between Mass and Radius problems for challenge mode
+                const challengeBank = [generateMassProblem, generateRadiusProblem];
+                generator = challengeBank[Math.floor(Math.random() * challengeBank.length)];
+            }
+            
+            currentQuestion = generator();
+            
+            questionContainer.innerHTML = currentQuestion.text;
+            answerInput.value = '';
+            feedbackContainer.innerHTML = '';
+            feedbackContainer.className = 'p-4 rounded-lg hidden';
+            answerInput.disabled = false;
+            submitBtn.disabled = false;
+            guesStep = 0;
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackContainer.innerHTML = `<p class="font-bold">Please enter a valid number (e.g. 3.5e6).</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                return;
+            }
+
+            const correctAnswer = currentQuestion.answer;
+            const percentDiff = Math.abs((userAnswer - correctAnswer) / correctAnswer);
+            
+            const isCorrect = percentDiff < 0.05; // 5% tolerance
+
+            if (isCorrect) {
+                feedbackContainer.innerHTML = `<p class="font-bold text-lg">Correct! Great job!</p><p>Loading a new question...</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg correct';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                setTimeout(loadNewQuestion, 2000);
+            } else {
+                guesStep++;
+                showGUESFeedback();
+            }
+        }
+
+        function showGUESFeedback() {
+            const { g, u, e, s, solve } = currentQuestion.gues;
+            
+            let feedbackHTML = `<p class="font-bold text-lg text-red-700">Not quite. Let's review:</p>`;
+            let guesStepsHTML = '<div id="gues-steps" class="mt-4 space-y-2 text-gray-800">';
+            
+            if (guesStep >= 1) guesStepsHTML += `<p><strong>G - Given:</strong> ${g}</p>`;
+            if (guesStep >= 2) guesStepsHTML += `<p><strong>U - Unknown:</strong> ${u}</p>`;
+            if (guesStep >= 3) guesStepsHTML += `<p><strong>E - Equation:</strong> ${e}</p>`;
+            
+            if (guesStep >= 4) {
+                guesStepsHTML += `<p><strong>S - Substitute:</strong> <span class="font-mono bg-white px-1 rounded block mt-1">${s}</span></p>`;
+                guesStepsHTML += `<p><strong>S - Solve:</strong> <span class="font-mono bg-white px-1 rounded block mt-1">${solve}</span></p>`;
+                guesStepsHTML += '</div>';
+                
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Here is the full solution. Let's try a new problem.</p>`;
+                feedbackHTML += `
+                    <button 
+                        id="next-q-btn" 
+                        class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
+                    >
+                        Try a New Question
+                    </button>
+                `;
+
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+
+            } else {
+                guesStepsHTML += '</div>';
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Review the step(s) above and try to solve it again.</p>`;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+            }
+        }
+
+        function initializeModule() {
+            questionContainer = document.getElementById('question-container');
+            answerInput = document.getElementById('answer-input');
+            submitBtn = document.getElementById('submit-btn');
+            feedbackContainer = document.getElementById('feedback-container');
+            toggleBtn = document.getElementById('toggle-equation-btn');
+            equationHelp = document.getElementById('equation-help');
+            modeBasicBtn = document.getElementById('mode-basic');
+            modeChallengeBtn = document.getElementById('mode-challenge');
+
+            submitBtn.addEventListener('click', checkAnswer);
+            answerInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') submitBtn.click();
+            });
+            toggleBtn.addEventListener('click', () => {
+                equationHelp.classList.toggle('hidden');
+            });
+            
+            modeBasicBtn.addEventListener('click', () => setMode('basic'));
+            modeChallengeBtn.addEventListener('click', () => setMode('challenge'));
+
+            loadNewQuestion();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeModule);
+
+    </script>
+</body>
+</html>
