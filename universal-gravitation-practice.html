@@ -176,7 +176,10 @@
         // Helper to display scientific notation nicely in HTML
         function toSciHTML(num) {
             if (num === 0) return "0";
-            if (Math.abs(num) >= 0.01 && Math.abs(num) <= 10000) return num.toString(); 
+            // Display normal numbers cleanly (no long decimals)
+            if (Math.abs(num) >= 0.01 && Math.abs(num) <= 10000) {
+                return parseFloat(num.toFixed(2)).toString();
+            }
             
             let str = num.toExponential(2); 
             let parts = str.split('e');
@@ -230,15 +233,20 @@
             const r_exp = Math.floor(random(5, 8)); // Orbit sized
             const r = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, r_exp);
             
-            // Assume a force, or calculate based on a hidden m1
+            // Calculate a raw force based on a hidden m1
             const m1_hidden = parseFloat(random(100, 5000).toFixed(1)); // Satellite sized
-            const Fg = (G_CONSTANT * m1_hidden * m2) / (r * r);
+            let Fg_val = (G_CONSTANT * m1_hidden * m2) / (r * r);
             
-            const answer = m1_hidden;
+            // Clean up the Fg value so the problem text is clean
+            // Using 3 significant digits for the "given" force
+            Fg_val = parseFloat(Fg_val.toPrecision(3));
+            
+            // Recalculate the answer (m1) using the rounded Fg so the math works perfectly
+            const answer = (Fg_val * r * r) / (G_CONSTANT * m2);
             
             const m2_disp = toSciHTML(m2);
             const r_disp = toSciHTML(r);
-            const Fg_disp = toSciHTML(Fg);
+            const Fg_disp = toSciHTML(Fg_val);
             
             const text = `An unknown object experiences a gravitational force of ${Fg_disp} N due to a planet with mass ${m2_disp} kg at a distance of ${r_disp} m. What is the mass of the object?`;
             
@@ -261,15 +269,19 @@
             const m1 = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, m1_exp);
             const m2 = parseFloat(random(1, 9).toFixed(2)) * Math.pow(10, m2_exp);
             
-            // Define a hidden r
+            // Define a hidden r to calculate force
             const r_hidden = parseFloat(random(100, 10000).toFixed(1));
-            const Fg = (G_CONSTANT * m1 * m2) / (r_hidden * r_hidden);
+            let Fg_val = (G_CONSTANT * m1 * m2) / (r_hidden * r_hidden);
             
-            const answer = r_hidden;
+            // Clean up the Fg value
+            Fg_val = parseFloat(Fg_val.toPrecision(3));
+            
+            // Recalculate r based on the clean Fg
+            const answer = Math.sqrt( (G_CONSTANT * m1 * m2) / Fg_val );
             
             const m1_disp = toSciHTML(m1);
             const m2_disp = toSciHTML(m2);
-            const Fg_disp = toSciHTML(Fg);
+            const Fg_disp = toSciHTML(Fg_val);
             
             const text = `Two objects with masses ${m1_disp} kg and ${m2_disp} kg attract each other with a force of ${Fg_disp} N. How far apart are they?`;
             
