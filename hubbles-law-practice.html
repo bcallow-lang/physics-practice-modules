@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. Change Title -->
+    <title>Hubble's Law Practice</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for the feedback */
+        #feedback-container.correct {
+            border-left: 4px solid #10B981; /* green-500 */
+            background-color: #ECFDF5; /* green-50 */
+        }
+        #feedback-container.incorrect {
+            border-left: 4px solid #EF4444; /* red-500 */
+            background-color: #FEF2F2; /* red-50 */
+        }
+        /* Style for GUES steps */
+        #gues-steps p {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container max-w-6xl mx-auto p-4 sm:p-8">
+        
+        <!-- Toggle Button -->
+        <div class="mb-4 text-right">
+            <button 
+                id="toggle-equation-btn" 
+                class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200 text-sm"
+            >
+                Toggle Equation Help
+            </button>
+        </div>
+
+        <!-- 2. Equation and Variable Definitions -->
+        <div id="equation-help" class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
+                Hubble's Law Practice
+            </h1>
+            <div class="text-center mb-6">
+                <p class="text-lg text-gray-600 mb-2">Core Equation:</p>
+                <code class="text-5xl font-mono p-4 block overflow-x-auto">v = H<sub>0</sub> * d</code>
+            </div>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mb-6 text-center border-l-4 border-blue-500">
+                <p class="font-bold text-blue-800">Unit Note:</p>
+                <p class="text-gray-700">
+                    In cosmology, we typically use <strong>km/s</strong> for velocity and <strong>Mpc</strong> (Megaparsecs) for distance.
+                </p>
+            </div>
+
+             <div class="flex flex-wrap justify-center gap-4 text-center">
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">v</strong> = Recessional Velocity (km/s)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">H<sub>0</sub></strong> = Hubble's Constant (&approx; 70 km/s/Mpc)
+                </div>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <strong class="text-blue-600">d</strong> = Distance (Mpc)
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Layout: Desmos + Practice App -->
+        <div class="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+            
+            <!-- 3a. Desmos Calculator -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 md:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Desmos Calculator</h2>
+                <iframe 
+                    src="https://www.desmos.com/calculator" 
+                    class="w-full h-96 rounded-lg border border-gray-300"
+                    title="Desmos Graphing Calculator"
+                ></iframe>
+            </div>
+
+            <!-- 3b. Interactive Practice Module -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Practice Problem</h2>
+                
+                <!-- Question Display -->
+                <div id="question-container" class="text-lg text-gray-700 mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                    Loading new question...
+                </div>
+
+                <!-- Answer Input -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                    <input 
+                        type="number" 
+                        id="answer-input" 
+                        class="flex-grow p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Enter your answer..."
+                    >
+                    <button 
+                        id="submit-btn"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition duration-200"
+                    >
+                        Submit
+                    </button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-container" class="p-4 rounded-lg hidden">
+                    <!-- Feedback will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JavaScript Logic -->
+    <script>
+        // --- State and DOM Variables (Global) ---
+        // State
+        let currentQuestion = null;
+        let guesStep = 0; // 0=none, 1=G, 2=U, 3=E, 4=S, 5=Solve
+        const H0_CONSTANT = 70; // km/s/Mpc
+
+        // DOM Elements
+        let questionContainer;
+        let answerInput;
+        let submitBtn;
+        let feedbackContainer;
+        let toggleBtn;
+        let equationHelp;
+
+        // --- Helper Functions ---
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // --- Question Generation Functions ---
+
+        // Problem Type 1: Solve for Velocity (v)
+        function generateVelocityProblem() {
+            // Generate distance in Mpc (e.g., 10 to 1000 Mpc)
+            const d_raw = random(10, 1000);
+            
+            // Round to 1 decimal place for cleaner display
+            const d = parseFloat(d_raw.toFixed(1));
+            
+            // v = H0 * d
+            const answer = H0_CONSTANT * d;
+            
+            const text = `A galaxy is located at a distance of ${d} Mpc from Earth. Using Hubble's Law (with H<sub>0</sub> = 70 km/s/Mpc), calculate its recessional velocity.`;
+            
+            const gues = {
+                g: `H<sub>0</sub> = 70 km/s/Mpc, d = ${d} Mpc`,
+                u: `v (Recessional Velocity)`,
+                e: `v = H<sub>0</sub> * d`,
+                s: `v = 70 km/s/Mpc * ${d} Mpc`,
+                solve: `v = ${answer.toFixed(1)} km/s`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 2: Solve for Distance (d)
+        function generateDistanceProblem() {
+            // Generate velocity in km/s (e.g., 700 to 70000 km/s)
+            const v_raw = random(700, 70000);
+            
+            // Round for cleaner numbers
+            const v = parseFloat(v_raw.toFixed(0));
+            
+            // d = v / H0
+            const answer = v / H0_CONSTANT;
+            
+            const text = `Astronomers observe a galaxy moving away from Earth at a speed of ${v} km/s. Using H<sub>0</sub> = 70 km/s/Mpc, estimate how far away the galaxy is.`;
+            
+            const gues = {
+                g: `v = ${v} km/s, H<sub>0</sub> = 70 km/s/Mpc`,
+                u: `d (Distance)`,
+                e: `v = H<sub>0</sub> * d  &rArr;  d = v / H<sub>0</sub>`,
+                s: `d = ${v} km/s / 70 km/s/Mpc`,
+                solve: `d = ${answer.toFixed(2)} Mpc`
+            };
+            return { text, answer, gues };
+        }
+
+        // Problem Type 3: Solve for H0 (Experimental)
+        function generateH0Problem() {
+            // Generate a 'measured' distance and velocity
+            // We'll fudge it slightly so it comes out to exactly 70 for simplicity in checking,
+            // or we could vary H0 slightly to simulate real data variation. Let's keep it consistent.
+            
+            const d_raw = random(20, 500);
+            const d = parseFloat(d_raw.toFixed(1));
+            
+            // Calculate v based on H0=70
+            const v = parseFloat((H0_CONSTANT * d).toFixed(1));
+            
+            const answer = H0_CONSTANT;
+            
+            const text = `A galaxy is found to be ${d} Mpc away and is receding at ${v} km/s. Based on this single galaxy, what is the value of the Hubble Constant (H<sub>0</sub>)?`;
+            
+            const gues = {
+                g: `d = ${d} Mpc, v = ${v} km/s`,
+                u: `H<sub>0</sub> (Hubble's Constant)`,
+                e: `v = H<sub>0</sub> * d  &rArr;  H<sub>0</sub> = v / d`,
+                s: `H<sub>0</sub> = ${v} / ${d}`,
+                solve: `H<sub>0</sub> = ${answer.toFixed(1)} km/s/Mpc`
+            };
+            return { text, answer, gues };
+        }
+
+        // Bank of question types
+        const questionBank = [
+            generateVelocityProblem,
+            generateDistanceProblem,
+            generateH0Problem
+        ];
+
+        // --- Core Functions ---
+
+        function loadNewQuestion() {
+            const generator = questionBank[Math.floor(Math.random() * questionBank.length)];
+            currentQuestion = generator();
+            
+            questionContainer.innerHTML = currentQuestion.text;
+            answerInput.value = '';
+            feedbackContainer.innerHTML = '';
+            feedbackContainer.className = 'p-4 rounded-lg hidden';
+            answerInput.disabled = false;
+            submitBtn.disabled = false;
+            guesStep = 0;
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackContainer.innerHTML = `<p class="font-bold">Please enter a valid number.</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                return;
+            }
+
+            // Calculate percentage difference for tolerance
+            const correctAnswer = currentQuestion.answer;
+            const percentDiff = Math.abs((userAnswer - correctAnswer) / correctAnswer);
+            
+            // Allow 5% error margin
+            const isCorrect = percentDiff < 0.05;
+
+            if (isCorrect) {
+                feedbackContainer.innerHTML = `<p class="font-bold text-lg">Correct! Great job!</p><p>Loading a new question...</p>`;
+                feedbackContainer.className = 'p-4 rounded-lg correct';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                setTimeout(loadNewQuestion, 2000);
+            } else {
+                guesStep++;
+                showGUESFeedback();
+            }
+        }
+
+        function showGUESFeedback() {
+            const { g, u, e, s, solve } = currentQuestion.gues;
+            
+            let feedbackHTML = `<p class="font-bold text-lg text-red-700">Not quite. Let's review:</p>`;
+            let guesStepsHTML = '<div id="gues-steps" class="mt-4 space-y-2 text-gray-800">';
+            
+            if (guesStep >= 1) guesStepsHTML += `<p><strong>G - Given:</strong> ${g}</p>`;
+            if (guesStep >= 2) guesStepsHTML += `<p><strong>U - Unknown:</strong> ${u}</p>`;
+            if (guesStep >= 3) guesStepsHTML += `<p><strong>E - Equation:</strong> ${e}</p>`;
+            
+            if (guesStep >= 4) {
+                guesStepsHTML += `<p><strong>S - Substitute:</strong> <span class="font-mono bg-white px-1 rounded block mt-1">${s}</span></p>`;
+                guesStepsHTML += `<p><strong>S - Solve:</strong> <span class="font-mono bg-white px-1 rounded block mt-1">${solve}</span></p>`;
+                guesStepsHTML += '</div>';
+                
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Here is the full solution. Let's try a new problem.</p>`;
+                feedbackHTML += `
+                    <button 
+                        id="next-q-btn" 
+                        class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 hover:bg-gray-700 transition duration-200"
+                    >
+                        Try a New Question
+                    </button>
+                `;
+
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+                document.getElementById('next-q-btn').addEventListener('click', loadNewQuestion);
+
+            } else {
+                guesStepsHTML += '</div>';
+                feedbackHTML += guesStepsHTML;
+                feedbackHTML += `<p class="mt-4 font-bold">Review the step(s) above and try to solve it again.</p>`;
+                
+                feedbackContainer.innerHTML = feedbackHTML;
+                feedbackContainer.className = 'p-4 rounded-lg incorrect';
+            }
+        }
+
+        function initializeModule() {
+            questionContainer = document.getElementById('question-container');
+            answerInput = document.getElementById('answer-input');
+            submitBtn = document.getElementById('submit-btn');
+            feedbackContainer = document.getElementById('feedback-container');
+            toggleBtn = document.getElementById('toggle-equation-btn');
+            equationHelp = document.getElementById('equation-help');
+
+            submitBtn.addEventListener('click', checkAnswer);
+            answerInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') submitBtn.click();
+            });
+            toggleBtn.addEventListener('click', () => {
+                equationHelp.classList.toggle('hidden');
+            });
+
+            loadNewQuestion();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeModule);
+
+    </script>
+</body>
+</html>
